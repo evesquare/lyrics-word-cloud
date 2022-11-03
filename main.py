@@ -6,6 +6,36 @@ import MeCab
 from janome.tokenizer import Tokenizer
 from wordcloud import WordCloud
 
+mecab = MeCab.Tagger()
+mecab.parse('')
+
+stop_words = ['そう', 'ない', 'いる', 'する', 'まま', 'よう',
+              'てる', 'なる', 'こと', 'もう', 'いい', 'ある',
+              'ゆく', 'れる', 'なっ', 'ちゃっ', 'ちょっ',
+              'ちょっ', 'やっ', 'あっ', 'ちゃう', 'その', 'あの',
+              'この', 'どの', 'それ', 'あれ', 'これ', 'どれ',
+              'から', 'なら', 'だけ', 'じゃあ', 'られ', 'たら', 'のに',
+              'って', 'られ', 'ずっ', 'じゃ', 'ちゃ', 'くれ', 'なんて', 'だろ',
+              'でしょ', 'せる', 'なれ', 'どう', 'たい', 'けど', 'でも', 'って',
+              'まで', 'なく', 'もの', 'ここ', 'どこ', 'そこ', 'さえ', 'なく',
+              'たり', 'なり', 'だっ', 'まで', 'ため', 'ながら', 'より', 'られる', 'です']
+
+def text_to_words(text):
+    
+    words_song = []
+    #分解した単語ごとにループする。
+    node = mecab.parseToNode(text)
+    while node:
+        word_type = node.feature.split(",")[0]
+        #名詞、形容詞、副詞、動詞の場合のみ追加
+        if word_type in ["名詞", "形容詞", "副詞", "動詞"]:
+            words_song.append(node.surface.upper())            
+        node = node.next
+        
+    #曲毎の単語の重複を削除して'空白区切のテキストを返す。
+    words = ' '.join(set(words_song))
+    return words
+
 
 def extract_words(text,exclusion=[]):
     """
@@ -35,17 +65,19 @@ text = ""
 with open(path.join(d, 'constitution.txt'), encoding='utf-8') as f:
     lines = f.readlines()
     for line in lines:
-        text += extract_words(line)
+        text += text_to_words(line)
 
 
 # Generate a word cloud image
-fpath = "assets/fonts/Noto_Sans_JP/NotoSansJP-Medium.otf"
+fpath = "assets/fonts/Noto_Serif_JP/NotoSerifJP-Medium.otf"
 wordcloud = WordCloud(
             font_path=fpath,
             # background_color="whitesmoke",
             # colormap="viridis",
-            width=1000, 
-            height=540
+            width=1920, 
+            height=1080,
+            collocations=False,
+            stopwords=set(stop_words),
         ).generate(text)
 
 # image = wordcloud.to_image()
